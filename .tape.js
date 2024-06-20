@@ -156,4 +156,21 @@ module.exports = {
 			syntax: require('postcss-scss')
 		}
 	},
+	'functions': {
+		message: 'supports functions',
+		source: 'functions.css',
+		expect: 'functions.expect.css',
+		options: {
+			functions: {
+				getColors(name) {
+					const colors = { 'primary': '#000', 'secondary': '#fff'}
+					if(!name) {
+						return Object.keys(colors);
+					}
+
+					return colors[name];
+				}
+			}
+		}
+	}
 };

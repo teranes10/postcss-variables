@@ -1,0 +1,10 @@
+.btn {
+	background-color: getColors(secondary);
+	color: getColors(primary);
+}
+
+@each $color in getColors(){
+	.btn-$(color) {
+		color: getColors($color);
+	}
+}

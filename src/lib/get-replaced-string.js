@@ -4,7 +4,7 @@ import manageUnresolved from './manage-unresolved';
 
 // return content with its variables replaced by the corresponding values of a node
 export default function getReplacedString(string, node, opts) {
-	const replacedString = string.replace(
+	let replacedString = string.replace(
 		matchVariables,
 		(match, before, name1, name2, name3) => {
 			// conditionally return an (unescaped) match
@@ -32,8 +32,36 @@ export default function getReplacedString(string, node, opts) {
 		}
 	);
 
+	const {name, args} = isFunctionCall(replacedString) || {};
+	if (name && opts.functions.hasOwnProperty(name)) {
+		try{
+			replacedString = opts.functions[name](...args);
+		}catch(e){
+			console.error(name, e);
+		}
+	}
+
 	return replacedString;
 }
+
+function isFunctionCall(string) {
+	const match = matchFunctionCall.exec(string);
+	if (!match) {
+		return undefined;
+	}
+
+	// Extract the function name and arguments string from the capturing groups
+	const functionName = match[1].trim();
+	const argsString = match[2].trim();
+
+	// Split the arguments string by comma, taking care of possible spaces around commas
+	const args = argsString ? argsString.split(/\s*,\s*/) : [];
+
+	return { name: functionName, args };
+}
+
+// match name(), name(arg1, arg2, ...)
+const matchFunctionCall = /^\s*([a-zA-Z_$][0-9a-zA-Z_$]*)\s*\(([^()]*)\)\s*;?\s*$/;
 
 // match all $name, $(name), and #{$name} variables (and catch the character before it)
 const matchVariables = /(.?)(?:\$([A-z][\w-]*)|\$\(([A-z][\w-]*)\)|#\{\$([A-z][\w-]*)\})/g;

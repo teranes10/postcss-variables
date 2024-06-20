@@ -453,6 +453,32 @@ require('postcss-advanced-variables')({
 }
 ```
 
+### functions
+
+The `functions` option defines global functions like global variables with args
+
+```js
+require('postcss-advanced-variables')({
+  functions: {
+    getColor(name){
+        if(name === 'primary') {
+            return '#000';
+        }
+    }
+  }
+});
+```
+```scss
+.hero {
+  color: getColor(primary);
+}
+
+/* after */
+
+.hero {
+  max-width: #fff;
+}
+```
 ### unresolved
 
 The `unresolved` option defines how unresolved variables, mixins, and imports

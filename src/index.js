@@ -23,6 +23,7 @@ const plugin = opts => ({
 			(id, cwd) => resolve(id, { cwd, readFile: true, cache: importCache })
 		);
 		const importRoot = Object(opts).importRoot || process.cwd();
+		const functionsOpt = Object(opts).functions || {};
 
 		return transformNode(root, {
 			result,
@@ -33,7 +34,8 @@ const plugin = opts => ({
 			importRoot,
 			transform: transformOpt,
 			unresolved: unresolvedOpt,
-			variables: variablesOpt
+			variables: variablesOpt,
+			functions: functionsOpt
 		});
 	},
 });
