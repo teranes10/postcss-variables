@@ -8,3 +8,9 @@
 		color: getColors($color);
 	}
 }
+
+@each $color in getColorObjects(){
+	.btn {
+		color: var(--$(getItem($color, color)));
+	}
+}

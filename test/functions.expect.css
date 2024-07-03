@@ -10,3 +10,11 @@
 .btn-secondary {
 		color: #fff;
 	}
+
+.btn {
+		color: var(--primary-400);
+	}
+
+.btn {
+		color: var(--secondary-400);
+	}

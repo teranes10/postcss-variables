@@ -163,12 +163,27 @@ module.exports = {
 		options: {
 			functions: {
 				getColors(name) {
-					const colors = { 'primary': '#000', 'secondary': '#fff'}
-					if(!name) {
+					const colors = { 'primary': '#000', 'secondary': '#fff' }
+					if (!name) {
 						return Object.keys(colors);
 					}
 
 					return colors[name];
+				},
+				getColorObjects() {
+					const colors = [
+						{ name: 'primary', color: 'primary-400', text: 'white' },
+						{ name: 'secondary', color: 'secondary-400', text: 'white' },
+					]
+
+					return colors
+				},
+				getItem(value, index) {
+					if (!value || !index) {
+						return ''
+					}
+
+					return JSON.parse(value)[index]
 				}
 			}
 		}

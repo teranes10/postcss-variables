@@ -32,36 +32,28 @@ export default function getReplacedString(string, node, opts) {
 		}
 	);
 
-	const {name, args} = isFunctionCall(replacedString) || {};
-	if (name && opts.functions.hasOwnProperty(name)) {
-		try{
-			replacedString = opts.functions[name](...args);
-		}catch(e){
-			console.error(name, e);
+	replacedString = replacedString.replace(matchFunction, (match, funcName, argsStr) => {
+		const name = funcName?.trim();
+
+		if (name && opts.functions.hasOwnProperty(name)) {
+			try {
+				const args = argsStr?.trim()?.split(matchArguments)?.map(sanitizeArgument) || [];
+				const result = opts.functions[name](...args);
+				return transformResult(result);
+			} catch (e) {
+				console.error(name, e);
+			}
 		}
-	}
+
+		return match;
+	})
 
 	return replacedString;
 }
 
-function isFunctionCall(string) {
-	const match = matchFunctionCall.exec(string);
-	if (!match) {
-		return undefined;
-	}
-
-	// Extract the function name and arguments string from the capturing groups
-	const functionName = match[1].trim();
-	const argsString = match[2].trim();
-
-	// Split the arguments string by comma, taking care of possible spaces around commas
-	const args = argsString ? argsString.split(/\s*,\s*/) : [];
-
-	return { name: functionName, args };
-}
-
-// match name(), name(arg1, arg2, ...)
-const matchFunctionCall = /^\s*([a-zA-Z_$][0-9a-zA-Z_$]*)\s*\(([^()]*)\)\s*;?\s*$/;
+// match name(), name(arg1, arg2, ...) (([^()]*)\)(?=\s|\$\()/
+const matchFunction = /(?:\$\(\s*|^\s*)([\w$][\w]*)\s*\(([^()]*(?:\([^()]*\)[^()]*)*)\)(?:\s*\))?/g;
+const matchArguments = /,\s*(?=(?:[^'"\[\]]|'[^']*'|"[^"]*"|\[[^\]]*\])*$)/g
 
 // match all $name, $(name), and #{$name} variables (and catch the character before it)
 const matchVariables = /(.?)(?:\$([A-z][\w-]*)|\$\(([A-z][\w-]*)\)|#\{\$([A-z][\w-]*)\})/g;
@@ -69,8 +61,30 @@ const matchVariables = /(.?)(?:\$([A-z][\w-]*)|\$\(([A-z][\w-]*)\)|#\{\$([A-z][\
 // return a sass stringified variable
 const stringify = object => Array.isArray(object)
 	? `(${object.map(stringify).join(',')})`
-: Object(object) === object
-	? `(${Object.keys(object).map(
-		key => `${key}:${stringify(object[key])}`
-	).join(',')})`
-: String(object);
+	: Object(object) === object
+		? `(${Object.keys(object).map(
+			key => `${key}:${stringify(object[key])}`
+		).join(',')})`
+		: String(object);
+
+function sanitizeArgument(value) {
+	const regex = /^[`'"](.*)[`'"]$/;
+	const matches = value.match(regex);
+	if (matches) {
+		return matches[1]
+	}
+
+	return value
+}
+
+function transformResult(value) {
+	if (typeof value === 'object') {
+		if (Array.isArray(value)) {
+			return value.map(transformResult)
+		} else {
+			return `"${JSON.stringify(value)}"`
+		}
+	}
+
+	return value;
+}
