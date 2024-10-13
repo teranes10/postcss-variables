@@ -10,7 +10,7 @@
 }
 
 @each $color in getColorObjects(){
-	.btn {
+	.btn-$(getItem($color, name)) {
 		color: var(--$(getItem($color, color)));
 	}
 }
